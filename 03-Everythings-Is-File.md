@@ -44,7 +44,18 @@ root@ubuntu:/dev# hexdump -C /dev/sda | head -n 10
 
 ```bash
 root@ubuntu:# ls /proc
-1      10     12     14     16     18     2      20     22     24     26     28     3      30     32     34     36     38     4      40     42     44     46     48     5      50     52     54     56     58     6      60     7      9      acpi              buddyinfo         cmdline           crypto            diskstats         execdomains       filesystems       interrupts        kallsyms          kcore             kmsg              kpagecgroup       kpagecount        kpageflags        loadavg           locks             mdstat            meminfo           misc              modules           mounts            mtrr              pagetypeinfo      partitions        sched_debug       schedstat         scsi              self              slabinfo          softirqs          stat              swaps             sys               sysrq-trigger     sysvipc           timer_list        timer_stats       tty               uptime            version           version_signature vmallocinfo       vmstat            zoneinfo
+1      10     12     14     16     18     2      20     22     24     26     28     
+3      30     32     34     36     38     4      40     42     44     46     48     
+5      50     52     54     56     58     6      60     7      9      
+acpi              buddyinfo         cmdline           crypto            diskstats         
+execdomains       filesystems       interrupts        kallsyms          kcore             
+kmsg              kpagecgroup       kpagecount        kpageflags        loadavg           
+locks             mdstat            meminfo           misc              modules           
+mounts            mtrr              pagetypeinfo      partitions        sched_debug       
+schedstat         scsi              self              slabinfo          softirqs          
+stat              swaps             sys               sysrq-trigger     sysvipc           
+timer_list        timer_stats       tty               uptime            version           
+version_signature vmallocinfo       vmstat            zoneinfo
 ```
 
 这里的每一个数字都是一个进程, 你可以`cat /proc/1/cmdline`来看看, 你会发现, 这个进程就是`init`进程.  
@@ -84,15 +95,20 @@ tmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=204800k,mode=755)
 我们可以看到这里面有sysfs, proc, devtmpfs, devpts, tmpfs, 还有我们熟悉的sda2和sdb1, 之前在`/dev`目录下看到的设备.  
 这些设备都被挂载到了虚拟文件系统的不同位置上, 它们共同构成了Linux的文件系统.  
 
-值得注意的是sysfs, proc udev, tmpfs这类的特殊类型文件系统. 这些文件系统由Linux中的**内核模块**虚拟出来的, 里面的内容是通过代码动态生成的.  
+值得注意的是sysfs, procfs devtmpfs, tmpfs这类的特殊类型文件系统类型. 这些文件系统由Linux中的**内核模块**虚拟出来的, 里面的内容是通过代码动态生成的.  
 也就是说, 实际上并没有真正的这几个设备. 它们接管了文件系统的接口, 当你访问到了它们的时候, 它们会根据你的请求, 查询Linux系统当前的状态, 然后动态生成文件内容.  
 
 至于怎么样是访问到它们, 这就是Linux的**VFS**要做的事情了. 现在让我们试一试**VFS**的魔力!  
-理论上, 你可以任意指定一个路径, 把它挂在到虚拟文件系统的任意位置上, 只要指明type是proc, sysfs, udev, tmpfs就可以了. 例如, 你的/dev又何必必须是/dev?
+理论上, 你可以任意指定一个路径, 把它挂在到虚拟文件系统的任意位置上, 只要指明要挂什么东西. 例如, 你的/dev又何必必须是/dev?
 
 ```bash
+# 接下来创建一个文件夹/tmp/dev, 然后把devtmpfs挂载到这个文件夹上
+# devtmpfs, 根据上文mount查询的结果, 可以发现对应了/dev, 是用于输出所有硬件设备的一个东西
+
 root@ubuntu:# mkdir /tmp/dev
 root@ubuntu:# mount -t devtmpfs devtmpfs /tmp/dev
+
+# 使用ls命令查看一下挂载了devtmpfs的/tmp/dev目录
 root@ubuntu:# ls /tmp/dev
 ```
 
